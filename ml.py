@@ -56,9 +56,9 @@ def start_audio():
     global _audio_stream
     try:
         _audio_stream = sd.InputStream(callback=audio_callback,
-                                       blocksize=AUDIO_BLOCKSIZE,
-                                       samplerate=AUDIO_SR,
-                                       channels=1)
+                                        blocksize=AUDIO_BLOCKSIZE,
+                                        samplerate=AUDIO_SR,
+                                        channels=1)
         _audio_stream.start()
         return True
     except Exception as e:
@@ -106,7 +106,7 @@ def eye_region_stats(gray, landmarks, eye_indices, w, h, pad=6):
 def get_iris_avg(landmarks):
     try:
         return (landmarks[LEFT_IRIS].x + landmarks[RIGHT_IRIS].x) / 2.0, \
-               (landmarks[LEFT_IRIS].y + landmarks[RIGHT_IRIS].y) / 2.0
+                (landmarks[LEFT_IRIS].y + landmarks[RIGHT_IRIS].y) / 2.0
     except Exception:
         return None, None
 
@@ -222,8 +222,8 @@ while True:
 
         # draw lightweight mesh
         mp_drawing.draw_landmarks(frame, mesh.multi_face_landmarks[0], mp_face_mesh.FACEMESH_TESSELATION,
-                                  mp_drawing.DrawingSpec(color=(0,200,0), thickness=1, circle_radius=1),
-                                  mp_drawing.DrawingSpec(color=(0,150,255), thickness=1))
+                                    mp_drawing.DrawingSpec(color=(0,200,0), thickness=1, circle_radius=1),
+                                    mp_drawing.DrawingSpec(color=(0,150,255), thickness=1))
 
         # EAR blink detection (temporal)
         left_ear = eye_aspect_ratio(lm, LEFT_EYE, w, h)
@@ -260,7 +260,7 @@ while True:
         else:
             lmean, lvar = left_stats; rmean, rvar = right_stats
             if (lvar < EYE_VARIANCE_THRESHOLD or lmean < EYE_MEAN_DARK) and \
-               (rvar < EYE_VARIANCE_THRESHOLD or rmean < EYE_MEAN_DARK):
+                (rvar < EYE_VARIANCE_THRESHOLD or rmean < EYE_MEAN_DARK):
                 occluded = True
 
         # gaze using iris avg and calibrated baseline
