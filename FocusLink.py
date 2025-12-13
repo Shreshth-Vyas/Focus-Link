@@ -9,6 +9,22 @@ import sounddevice as sd
 import sys
 import threading
 import time
+import os
+
+# --- NEW: GOOGLE GEMINI INTEGRATION ---
+import google.generativeai as genai
+
+GOOGLE_API_KEY = "AIzaSyB6pHHs2B86LuXhk5AOsl_IAoTkzFFc-1o"
+
+# Configure Gemini
+try:
+    genai.configure(api_key=GOOGLE_API_KEY)
+    model = genai.GenerativeModel('gemini-flash-latest')
+    GEMINI_AVAILABLE = True
+except Exception as e:
+    print(f"Gemini AI not configured correctly: {e}")
+    GEMINI_AVAILABLE = False
+# --------------------------------------
 
 # --- CONFIGURATION (Optimization Parameters) ---
 # Set this to a lower value (e.g., 320 or 480) for low-end PCs
@@ -533,12 +549,15 @@ print("             PROGRAM ENDED - FINAL LOG")
 print("="*50)
 
 # 1. Final Concentration Percentage Log
+final_stats_text = ""
 print("\n--- FINAL CONCENTRATION LOG ---")
 if total_frames > 0:
     for i in range(3):
         if person_frame_count[i] > 0:
             perc = (person_total_concentration_frames[i] / person_frame_count[i]) * 100
-            print(f"Person {i+1} Overall Concentration: {perc:.2f}%")
+            line = f"Person {i+1} Overall Concentration: {perc:.2f}%"
+            print(line)
+            final_stats_text += line + "\n"
         else:
             print(f"Person {i+1} was not detected.")
     print(f"\nTotal frames processed: {total_frames}")
@@ -546,12 +565,52 @@ else:
     print("No frames were processed.")
 
 # 2. Distraction Object Log
+distraction_summary_text = ""
 print("\n--- DISTRACTION OBJECT LOG ---")
 if not distraction_log:
     print("No distraction objects were detected during the session.")
+    distraction_summary_text = "No specific distractions detected."
 else:
     print(f"Total distraction events logged: {len(distraction_log)}")
     for event_time, obj_name in distraction_log:
-        print(f"[{event_time.strftime('%Y-%m-%d %H:%M:%S')}] Detected: {obj_name}")
+        line = f"[{event_time.strftime('%Y-%m-%d %H:%M:%S')}] Detected: {obj_name}"
+        print(line)
+        distraction_summary_text += line + "\n"
 
 print("\n" + "="*50)
+
+
+# --- NEW: GOOGLE GEMINI "STUDY COACH" REPORT ---
+if GEMINI_AVAILABLE and GOOGLE_API_KEY != "PASTE_YOUR_API_KEY_HERE":
+    print("\n[Google Gemini] Generating Smart Study Coach Report...")
+    print("(Sending data to Google AI for analysis...)\n")
+
+    # Construct the prompt for Gemini
+    prompt = f"""
+    You are an AI Study Coach. I have just finished a study session. 
+    Here is the data from my session:
+
+    CONCENTRATION STATISTICS:
+    {final_stats_text}
+
+    DISTRACTION LOG:
+    {distraction_summary_text}
+
+    Based on this data, please provide:
+    1. A brief assessment of my focus level.
+    2. A specific comment on what distracted me the most.
+    3. Three actionable tips to improve my focus for the next session.
+    
+    Keep the tone encouraging but strict.
+    """
+
+    try:
+        response = model.generate_content(prompt)
+        print("-" * 20 + " GEMINI STUDY COACH REPORT " + "-" * 20)
+        print(response.text)
+        print("-" * 65)
+    except Exception as e:
+        print(f"Error generating report: {e}")
+
+elif GOOGLE_API_KEY == "AIzaSyB6pHHs2B86LuXhk5AOsl_IAoTkzFFc-1o":
+    print("\n[Google Gemini] Skipped: Please add your API Key in the code to enable AI features.")
